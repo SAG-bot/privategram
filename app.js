@@ -1,10 +1,38 @@
+// Firebase core
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// Auth
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+// Firestore
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// Storage (kept but not required yet)
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+/* =========================
+   🔥 FIREBASE CONFIG
+   ========================= */
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD8_wAPvPzJ8r34FGrcdYae26EhmKz-mtY",
+   apiKey: "AIzaSyD8_wAPvPzJ8r34FGrcdYae26EhmKz-mtY",
   authDomain: "privategram-706f4.firebaseapp.com",
   projectId: "privategram-706f4",
   storageBucket: "privategram-706f4.firebasestorage.app",
@@ -13,52 +41,89 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth();
-const storage = getStorage();
-const db = getFirestore();
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+/* =========================
+   UI ELEMENTS
+   ========================= */
+
+const authSection = document.getElementById("auth");
+const mainSection = document.getElementById("main");
+const logoutBtn = document.getElementById("logoutBtn");
+const feed = document.getElementById("feed");
+
+/* =========================
+   AUTH FUNCTIONS
+   ========================= */
 
 window.login = async function () {
-  const email = document.getElementById("email").value;
+  const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
-  await signInWithEmailAndPassword(auth, email, password);
+
+  if (!email || !password) {
+    alert("Please enter email and password");
+    return;
+  }
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (error) {
+    alert(error.message);
+  }
 };
+
+logoutBtn.onclick = async () => {
+  await signOut(auth);
+};
+
+/* =========================
+   AUTH STATE LISTENER
+   ========================= */
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    document.getElementById("auth").style.display = "none";
-    document.getElementById("main").style.display = "block";
+    authSection.style.display = "none";
+    mainSection.style.display = "block";
+    logoutBtn.style.display = "block";
     loadFeed();
+  } else {
+    authSection.style.display = "block";
+    mainSection.style.display = "none";
+    logoutBtn.style.display = "none";
+    feed.innerHTML = "";
   }
 });
 
+/* =========================
+   UPLOAD (SAFE PLACEHOLDER)
+   ========================= */
+
 window.uploadVideo = function () {
-  const file = document.getElementById("videoFile").files[0];
-  if (!file) return;
-
-  const videoRef = ref(storage, "videos/" + Date.now() + "_" + file.name);
-  const uploadTask = uploadBytesResumable(videoRef, file);
-
-  uploadTask.on("state_changed", null, console.error, async () => {
-    const url = await getDownloadURL(uploadTask.snapshot.ref);
-    await addDoc(collection(db, "posts"), {
-      videoUrl: url,
-      createdAt: Date.now()
-    });
-  });
+  alert("Storage is temporarily disabled. UI is ready.");
 };
 
+/* =========================
+   FEED LOADING
+   ========================= */
+
 function loadFeed() {
-  snapshot.forEach(doc => {
-  const post = document.createElement("div");
-  post.className = "post";
+  const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
 
-  const v = document.createElement("video");
-  v.src = doc.data().videoUrl;
-  v.controls = true;
+  onSnapshot(q, (snapshot) => {
+    feed.innerHTML = "";
 
-  post.appendChild(v);
-  feed.appendChild(post);
-});
-);
+    snapshot.forEach((doc) => {
+      const post = document.createElement("div");
+      post.className = "post";
+
+      const video = document.createElement("video");
+      video.src = doc.data().videoUrl;
+      video.controls = true;
+
+      post.appendChild(video);
+      feed.appendChild(post);
+    });
   });
 }
