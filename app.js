@@ -58,25 +58,24 @@ const feed = document.getElementById("feed");
    AUTH FUNCTIONS
    ========================= */
 
-window.login = async function () {
+const loginBtn = document.getElementById("loginBtn");
+
+loginBtn.addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
 
   if (!email || !password) {
-    alert("Please enter email and password");
+    alert("Enter email and password");
     return;
   }
 
   try {
     await signInWithEmailAndPassword(auth, email, password);
-  } catch (error) {
-    alert(error.message);
+  } catch (err) {
+    alert(err.message);
   }
-};
+});
 
-logoutBtn.onclick = async () => {
-  await signOut(auth);
-};
 
 /* =========================
    AUTH STATE LISTENER
