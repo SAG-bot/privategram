@@ -48,15 +48,17 @@ window.uploadVideo = function () {
 };
 
 function loadFeed() {
-  const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-  onSnapshot(q, (snapshot) => {
-    const feed = document.getElementById("feed");
-    feed.innerHTML = "";
-    snapshot.forEach(doc => {
-      const v = document.createElement("video");
-      v.src = doc.data().videoUrl;
-      v.controls = true;
-      feed.appendChild(v);
-    });
+  snapshot.forEach(doc => {
+  const post = document.createElement("div");
+  post.className = "post";
+
+  const v = document.createElement("video");
+  v.src = doc.data().videoUrl;
+  v.controls = true;
+
+  post.appendChild(v);
+  feed.appendChild(post);
+});
+);
   });
 }
